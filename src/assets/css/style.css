@@ -1,0 +1,15 @@
+html {
+  font-size: 1px;
+}
+
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.stick {
+  border-radius: 2.5rem;
+  width: 5rem;
+  background-color: black;
+}
