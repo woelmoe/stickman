@@ -1,36 +1,45 @@
 <template>
-<div>
+<div
+  ref="stickmanRef"
+  :style="{
+    width: width + 'px'
+  }"
+>
   <div
     class="stickman"
     :style="{
-      width: width + 'rem',
-      height: height + 'rem'
+      left: stickmanX + 'px',
+      width: stickmanWidth + 'px',
+      height: stickmanHeight + 'px'
     }"
   >
     <div
       class="head"
       :style="{
-        height: headHeight + 'rem',
-        width: headWidth + 'rem'
+        height: headHeight + 'px',
+        width: headWidth + 'px',
       }"
     ></div>
     <div
       class="torso"
       :style="{
-        height: torsoHeight + 'rem'
+        height: torsoHeight + 'px',
+        width: torsoWidth + 'px',
+        left: torsoX + 'px'
       }"
     >
       <div
         class="spine stick"
         :style="{
-          height: spineLength + 'rem',
+          height: spineLength + 'px',
           transform: SpineAngle
         }"
       ></div>
       <div
         class="pelvic stick"
+        ref="pelvicRef"
         :style="{
-          height: pelvicLength + 'rem',
+          height: pelvicLength + 'px',
           transform: PelvicAngle
         }"
       ></div>
@@ -40,15 +49,25 @@
     <div
       class="legs"
       :style="{
-        height: LegHeight
+        height: legsHeight + 'px'
       }"
-    ></div>
+    >
+      <div
+        class="leftLeg stick"
+        :style="{
+          bottom: '0px',
+          left: legLeftXCenter + '%',
+          height: legHeight + 'px'
+        }"
+      ></div>
+    </div>
   </div>
 </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue'
+import { defineComponent, computed, ref, onMounted } from 'vue'
+import { maths } from '@/assets/maths'
 
 export default defineComponent({
   props: {
@@ -58,68 +77,94 @@ export default defineComponent({
     }
   },
   setup (props) {
-    const height = computed(() => {
-      return props.width * 3
-    })
+    const stickWidth = 5 // то же значение в стилях
 
-    const toRadians = (angle:number) => {
-      return angle * (Math.PI / 180)
-    }
+    const stickmanRef = ref<HTMLElement>()
+    const stickmanHeight = computed(() => props.width * 3)
+    const stickmanWidth = computed(() => props.width * 0.3)
+    const stickmanX = computed(() => maths.centerObjectByWidth(props.width, stickmanWidth.value))
 
-    const headHeight = computed(() => height.value * 0.11)
+    // head
+    const headHeight = computed(() => stickmanHeight.value * 0.11)
     const headWidth = computed(() => headHeight.value * 0.8)
 
-    const spineLength = computed(() => height.value * 0.2)
+    // torso
+    const torsoHeight = computed(() => spineBottomPointY.value + pelvicBottomPointY.value)
+    const torsoWidth = computed(() => stickmanHeight.value * 0.1)
+    const torsoX = computed(() => (torsoWidth.value / 2) - torsoWidth.value)
+
+    // spine
+    const spineLength = computed(() => stickmanHeight.value * 0.2)
     const spineAngle = ref(30)
     const setSpineAngle = (value:number) => {
       spineAngle.value = value
     }
     const SpineAngle = computed(() => `rotate(${spineAngle.value}deg)`)
+    const spineBottomPointY = computed(() => spineLength.value * Math.cos(maths.toRadians(spineAngle.value)))
+    const spineBottomPointX = computed(() => spineLength.value * Math.sin(maths.toRadians(spineAngle.value)))
 
-    const pelvicLength = computed(() => height.value * 0.1)
+    // pelvic
+    const pelvicRef = ref<HTMLElement>()
+    const pelvicTransformOrigin = computed(() => spineBottomPointX.value)
+    const pelvicLength = computed(() => stickmanHeight.value * 0.1)
     const pelvicAngle = ref(0)
     const setPelvicAngle = (value:number) => {
       pelvicAngle.value = value
     }
     const PelvicAngle = computed(() => `rotate(${pelvicAngle.value}deg)`)
+    const pelvicBottomPointY = computed(() => pelvicLength.value * Math.cos(maths.toRadians(pelvicAngle.value)))
+    const pelvicBottomPointX = computed(() => pelvicLength.value * Math.sin(maths.toRadians(pelvicAngle.value)))
 
-    const torsoHeight = computed(() => {
-      const value =
-        spineLength.value * Math.cos(toRadians(spineAngle.value)) +
-        pelvicLength.value * Math.cos(toRadians(pelvicAngle.value))
-      console.log(value)
-      return value
+    // legs
+    const legsHeight = computed(() => stickmanHeight.value * 0.56)
+
+    // legLeft
+    const legHeight = computed(() => legsHeight.value * 0.55)
+    const legLeftX = ref(50)
+    const legLeftXCenter = computed(() => legLeftX.value - stickWidth / 2)
+
+    onMounted(() => {
+      console.log(maths.getCoordsX(stickmanRef.value))
+      console.log(maths.getCoordsX(pelvicRef.value))
     })
 
-    const legHeight = ref(53)
-    const setLegHeight = (value:number) => {
-      legHeight.value = value
-    }
-    const LegHeight = computed(() => legHeight.value + '%')
-
     return {
-      height,
+      stickmanRef,
+      stickmanHeight,
+      stickmanWidth,
+      stickmanX,
       headHeight,
       headWidth,
       torsoHeight,
+      torsoWidth,
+      torsoX,
       setSpineAngle,
       SpineAngle,
       spineLength,
+      pelvicRef,
       setPelvicAngle,
       PelvicAngle,
       pelvicLength,
-      setLegHeight,
-      LegHeight
+      legsHeight,
+      legHeight,
+      legLeftXCenter
     }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-  $head-height: 12%;
-  $torso-height: 35%;
+  $stick-width: 5px; // то же значение stickWidth
+
+  * {
+    background-color: rgb(186, 186, 240);
+  }
+  .stickman {
+    position: relative;
+    background-color: rgb(245, 157, 157);
+  }
   .stick {
-    width: 5rem;
+    width: $stick-width;
     background-color: black;
   }
   .head {
@@ -129,22 +174,25 @@ export default defineComponent({
   }
   .torso {
     position: relative;
-    left: 7%;
-    width: 14%;
     background-color: aquamarine;
   }
   .spine {
     position: relative;
-    left: 40%;
+    left: calc(50% - $stick-width / 2);
     transform-origin: 50% top;
   }
   .pelvic {
     position: relative;
-    transform-origin: 50% top;
   }
   .legs {
-    position: relative;
-    width: 30%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transform-origin: 50% top;
+    width: 100%;
     background-color:bisque;
+  }
+  .leftLeg {
+    position: absolute;
   }
 </style>

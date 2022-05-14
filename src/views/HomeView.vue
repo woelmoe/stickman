@@ -1,6 +1,9 @@
 <template>
   <div class="home">
-    <StickMan class="StickMan" :width="width"/>
+    <StickMan
+      class="StickMan"
+      :width="width"
+    />
     <div class="ground"></div>
   </div>
 </template>
@@ -15,7 +18,7 @@ export default defineComponent({
     StickMan
   },
   setup () {
-    const width = ref(250)
+    const width = ref(300)
 
     return {
       width
@@ -31,14 +34,14 @@ export default defineComponent({
   }
   .StickMan {
     position: absolute;
-    left: 80%;
+    left: 20%;
     bottom: 10%;
   }
   .ground {
     position: absolute;
     bottom: 10%;
     width: 100%;
-    height: 5rem;
+    height: 5px;
     background-color: black;
   }
 </style>
