@@ -48,15 +48,24 @@
     <div class="handRight"></div>
     <div
       class="legs"
+      ref="legsRef"
       :style="{
         height: legsHeight + 'px'
       }"
     >
       <div
+        class="thighLeft stick"
+        ref="thighRef"
+        :style="{
+          height: thighHeight + 'px',
+          transform: ThighAngle
+        }"
+      ></div>
+      <div
         class="leftLeg stick"
         :style="{
           bottom: '0px',
-          left: legLeftXCenter + '%',
+          left: thighJoinX + 'px',
           height: legHeight + 'px'
         }"
       ></div>
@@ -116,16 +125,25 @@ export default defineComponent({
     const pelvicBottomPointX = computed(() => pelvicLength.value * Math.sin(maths.toRadians(pelvicAngle.value)))
 
     // legs
+    const legsRef = ref<HTMLElement>()
     const legsHeight = computed(() => stickmanHeight.value * 0.56)
+
+    // thighLeft
+    const thighRef = ref<HTMLElement>()
+    const thighHeight = computed(() => legsHeight.value * 0.45) // поменять на натуральную величину после отстройки соотношений
+    const thighAngle = ref(-50)
+    const ThighAngle = computed(() => `rotate(${thighAngle.value}deg)`)
+    const thighJoinX = computed(() => maths.getCoordsBotX(thighRef.value) - maths.getCoordsX(legsRef.value) - stickWidth)
+    // const thighBottomPointY = computed(() => thighHeight.value * )
 
     // legLeft
     const legHeight = computed(() => legsHeight.value * 0.55)
-    const legLeftX = ref(50)
-    const legLeftXCenter = computed(() => legLeftX.value - stickWidth / 2)
 
     onMounted(() => {
-      console.log(maths.getCoordsX(stickmanRef.value))
-      console.log(maths.getCoordsX(pelvicRef.value))
+      console.log(thighRef.value)
+      console.log(maths.getCoordsBotX(thighRef.value))
+      console.log(maths.getCoordsX(legsRef.value))
+      console.log(thighJoinX.value)
     })
 
     return {
@@ -145,9 +163,13 @@ export default defineComponent({
       setPelvicAngle,
       PelvicAngle,
       pelvicLength,
+      legsRef,
       legsHeight,
       legHeight,
-      legLeftXCenter
+      thighRef,
+      thighHeight,
+      ThighAngle,
+      thighJoinX
     }
   }
 })
@@ -192,7 +214,13 @@ export default defineComponent({
     width: 100%;
     background-color:bisque;
   }
+  .thighLeft {
+    position: absolute;
+    transform-origin: 50% top;
+  }
   .leftLeg {
     position: absolute;
+    transform-origin: 50% top;
   }
+
 </style>
